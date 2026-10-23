@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CineStream - Movie Download & Streaming Portal</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#fff1f2',
+                            100: '#ffe4e6',
+                            500: '#e11d48',
+                            600: '#e11d48',
+                            700: '#be123c',
+                            900: '#4c0519',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Custom scrollbars */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0f172a;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #475569;
+        }
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.75);
+            backdrop-filter: blur(12px);
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 font-sans antialiased min-h-screen flex flex-col selection:bg-rose-500 selection:text-white">
+
+    <!-- Navbar -->
+    <header class="sticky top-0 z-40 glass-panel border-b border-slate-800/80">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16 gap-4">
+                <!-- Logo -->
+                <div class="flex items-center space-x-3 cursor-pointer" onclick="resetFilters()">
+                    <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-rose-600 to-rose-400 flex items-center justify-center shadow-lg shadow-rose-600/30">
+                        <i data-lucide="clapperboard" class="w-6 h-6 text-white"></i>
+                    </div>
+                    <span class="text-xl font-bold tracking-tight bg-gradient-to-r from-white via-slate-200 to-rose-400 bg-clip-text text-transparent">CineStream</span>
+                </div>
+
+                <!-- Search Bar -->
+                <div class="flex-1 max-w-md mx-4">
+                    <div class="relative">
+                        <i data-lucide="search" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                        <input type="text" id="searchInput" oninput="handleSearch()" placeholder="Search movies, directors, actors..." 
+                            class="w-full pl-9 pr-4 py-2 bg-slate-900/80 border border-slate-800 rounded-xl text-sm focus:outline-none focus:border-rose-500 focus:ring-1 focus:ring-rose-500 transition placeholder-slate-500">
+                    </div>
+                </div>
+
+                <!-- Navigation Action Items -->
+                <div class="flex items-center space-x-3">
+                    <button onclick="toggleWatchlistModal()" class="relative p-2.5 rounded-xl bg-slate-900 border border-slate-800 hover:border-slate-700 text-slate-300 hover:text-white transition">
+                        <i data-lucide="bookmark" class="w-5 h-5"></i>
+                        <span id="watchlistBadge" class="hidden absolute -top-1 -right-1 w-5 h-5 bg-rose-600 text-white text-xs font-bold rounded-full flex items-center justify-center">0</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-8">
+
+        <!-- Hero Featured Movie Banner -->
+        <section id="heroSection" class="relative rounded-2xl overflow-hidden border border-slate-800 bg-slate-900 shadow-2xl">
+            <div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/60 to-transparent z-10"></div>
+            <img id="heroImage" src="https://images.unsplash.com/photo-1536440136628-849c177e76a1?auto=format&fit=crop&w=1600&q=80" alt="Hero Featured" class="w-full h-[380px] sm:h-[460px] object-cover filter brightness-90">
+            
+            <div class="absolute bottom-0 inset-x-0 p-6 sm:p-10 z-20 space-y-4 max-w-3xl">
+                <div class="flex items-center space-x-3">
+                    <span class="px-2.5 py-1 rounded-md bg-rose-600/90 text-white text-xs font-semibold uppercase tracking-wide">Featured Release</span>
+                    <span class="text-xs text-slate-300 flex items-center gap-1"><i data-lucide="star" class="w-3.5 h-3.5 fill-amber-400 text-amber-400"></i> 8.8 / 10</span>
+                    <span class="text-xs text-slate-400">2024 • 2h 45m</span>
+                </div>
+                <h1 id="heroTitle" class="text-3xl sm:text-5xl font-extrabold tracking-tight text-white drop-shadow-md">Cyberpunk Horizon 2099</h1>
+                <p id="heroOverview" class="text-slate-300 text-sm sm:text-base line-clamp-2 sm:line-clamp-3">In a neon-drenched dystopia, a lone rogue hacker uncovers an ominous conspiracy embedded deep within the central AI grid threatening human autonomy.</p>
+                
+                <div class="flex flex-wrap gap-3 pt-2">
+                    <button onclick="openPlayerModal(1)" class="flex items-center space-x-2 px-5 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-medium text-sm transition shadow-lg shadow-rose-600/30">
+                        <i data-lucide="play" class="w-4 h-4 fill-current"></i>
+                        <span>Watch Trailer</span>
+                    </button>
+                    <button onclick="openDownloadModal(1)" class="flex items-center space-x-2 px-5 py-2.5 rounded-xl bg-slate-900/90 border border-slate-700 hover:bg-slate-800 text-white font-medium text-sm transition">
+                        <i data-lucide="download" class="w-4 h-4"></i>
+                        <span>Download 4K</span>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Filters & Category Navigation -->
+        <section class="space-y-4">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800/80 pb-4">
+                <div class="flex items-center space-x-2 overflow-x-auto pb-2 sm:pb-0" id="genreFilters">
+                    <!-- Genre buttons generated dynamically -->
+                </div>
+                
+                <div class="flex items-center space-x-3 text-sm">
+                    <span class="text-slate-400 text-xs uppercase tracking-wider font-medium">Sort By:</span>
+                    <select id="sortSelect" onchange="applyFilters()" class="bg-slate-900 border border-slate-800 rounded-lg px-3 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-rose-500">
+                        <option value="popular">Most Popular</option>
+                        <option value="rating">Highest Rated</option>
+                        <option value="latest">Latest Release</option>
+                    </select>
+                </div>
+            </div>
+        </section>
+
+        <!-- Movie Grid -->
+        <section>
+            <div class="flex items-center justify-between mb-6">
+                <h2 id="gridTitle" class="text-xl font-bold text-white flex items-center gap-2">
+                    <i data-lucide="film" class="w-5 h-5 text-rose-500"></i>
+                    <span>Popular Movies</span>
+                </h2>
+                <span id="movieCount" class="text-xs text-slate-400">Showing 0 titles</span>
+            </div>
+
+            <!-- Grid Container -->
+            <div id="moviesGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-6">
+                <!-- Movies injected dynamically -->
+            </div>
+
+            <!-- Empty State -->
+            <div id="emptyState" class="hidden text-center py-16 space-y-3">
+                <div class="w-12 h-12 rounded-full bg-slate-900 border border-slate-800 flex items-center justify-center mx-auto text-slate-500">
+                    <i data-lucide="search-x" class="w-6 h-6"></i>
+                </div>
+                <h3 class="text-base font-semibold text-slate-300">No movies found</h3>
+                <p class="text-xs text-slate-500 max-w-sm mx-auto">Try adjusting your search terms or genre filter to find what you're looking for.</p>
+                <button onclick="resetFilters()" class="px-4 py-2 text-xs bg-slate-900 hover:bg-slate-800 text-rose-400 border border-slate-800 rounded-lg transition">Clear All Filters</button>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="border-t border-slate-800/80 bg-slate-950 py-8 mt-12 text-slate-500 text-xs">
+        <div class="max-w-7xl mx-auto px-4 text-center space-y-3">
+            <div class="flex justify-center space-x-6 text-slate-400">
+                <a href="#" class="hover:text-rose-400 transition">Terms of Service</a>
+                <a href="#" class="hover:text-rose-400 transition">Privacy Policy</a>
+                <a href="#" class="hover:text-rose-400 transition">DMCA Disclaimer</a>
+                <a href="#" class="hover:text-rose-400 transition">API Documentation</a>
+            </div>
+            <p>© 2026 CineStream Web Portal. Demo template created for developer showcase.</p>
+        </div>
+    </footer>
+
+    <!-- Video Player / Trailer Modal -->
+    <div id="playerModal" class="fixed inset-0 z-50 hidden bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-4xl w-full overflow-hidden shadow-2xl relative">
+            <div class="flex items-center justify-between px-6 py-4 border-b border-slate-800">
+                <h3 id="playerModalTitle" class="font-bold text-slate-100 flex items-center gap-2 text-base">
+                    <i data-lucide="play-circle" class="w-5 h-5 text-rose-500"></i> Video Preview
+                </h3>
+                <button onclick="closePlayerModal()" class="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <div class="aspect-video bg-black relative">
+                <iframe id="videoIframe" class="w-full h-full" src="" title="Video Player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+            </div>
+            <div class="p-4 bg-slate-900/90 text-xs text-slate-400 flex items-center justify-between">
+                <span>Resolution: 1080p Full HD</span>
+                <span>Subtitles: English, Spanish, French</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Download Options Modal -->
+    <div id="downloadModal" class="fixed inset-0 z-50 hidden bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-6 relative">
+            <div class="flex items-start justify-between border-b border-slate-800 pb-4">
+                <div>
+                    <h3 id="downloadModalTitle" class="font-bold text-slate-100 text-lg">Download File</h3>
+                    <p id="downloadModalMeta" class="text-xs text-slate-400 mt-1">Select your preferred format & video quality</p>
+                </div>
+                <button onclick="closeDownloadModal()" class="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <!-- Download Servers -->
+            <div class="space-y-3" id="downloadLinksContainer">
+                <!-- Injected dynamically -->
+            </div>
+
+            <div class="p-3 bg-amber-500/10 border border-amber-500/20 rounded-xl text-amber-400 text-xs flex items-start gap-2">
+                <i data-lucide="shield-alert" class="w-4 h-4 shrink-0 mt-0.5"></i>
+                <span>Fast mirrors hosted on encrypted high-speed servers. Direct HTTP/Torrent mirrors available.</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Watchlist Modal -->
+    <div id="watchlistModal" class="fixed inset-0 z-50 hidden bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4 relative">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-4">
+                <h3 class="font-bold text-slate-100 text-lg flex items-center gap-2">
+                    <i data-lucide="bookmark" class="w-5 h-5 text-rose-500"></i> My Saved Watchlist
+                </h3>
+                <button onclick="toggleWatchlistModal()" class="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <div id="watchlistItems" class="max-h-80 overflow-y-auto space-y-3 pr-1">
+                <!-- Watchlist items injected dynamically -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Application Script -->
+    <script>
+        // Movie Dataset
+        const moviesData = [
+            {
+                id: 1,
+                title: "Cyberpunk Horizon 2099",
+                genre: "Sci-Fi",
+                rating: 8.8,
+                year: 2024,
+                duration: "2h 45m",
+                quality: "4K UHD",
+                poster: "https://images.unsplash.com/photo-1536440136628-849c177e76a1?auto=format&fit=crop&w=600&q=80",
+                trailer: "https://www.youtube.com/embed/dQw4w9WgXcQ",
+                overview: "In a neon-drenched dystopia, a lone rogue hacker uncovers an ominous conspiracy embedded deep within the central AI grid."
+            },
+            {
+                id: 2,
+                title: "Shadows of the Forgotten Realm",
+                genre: "Fantasy",
+                rating: 8.4,
+                year: 2023,
+                duration: "2h 15m",
+                quality: "1080p",
+                poster: "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=600&q=80",
+                trailer: "https://www.youtube.com/embed/dQw4w9WgXcQ",
+                overview: "An ancient warrior embarks on an perilous quest to retrieve the lost mystical relic capable of restoring light to a decaying kingdom."
+            },
+            {
+                id: 3,
+                title: "Velocity Rush: Overdrive",
+                genre: "Action",
+                rating: 7.9,
+                year: 2024,
+                duration: "1h 50m",
+                quality: "4K UHD",
+                poster: "https://images.unsplash.com/photo-1568605117036-5fe5e7bab0b7?auto=format&fit=crop&w=600&q=80",
+                trailer: "https://www.youtube.com/embed/dQw4w9WgXcQ",
+                overview: "High-octane underground street racers pull off the ultimate heist while evading a relentless international task force."
+            },
+            {
+                id: 4,
+                title: "Whispers in the Cabin",
+                genre: "Horror",
+                rating: 7.5,
+                year: 2023,
+                duration: "1h 38m",
+                quality: "1080p",
+                poster: "https://images.unsplash.com/photo-1509281373149-e957c6296406?auto=format&fit=crop&w=600&q=80",
+                trailer: "https://www.youtube.com/embed/dQw4w9WgXcQ",
+                overview: "A weekend getaway in an isolated forest cottage turns into a nightmare as unexplained supernatural entities awaken."
+            },
+            {
+                id: 5,
+                title: "The Enigma Code: Uncovered",
+                genre: "Thriller",
+                rating: 8.6,
+                year: 2024,
+                duration: "2h 10m",
+                quality: "4K UHD",
+                poster: "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?auto=format&fit=crop&w=600&q=80",
+                trailer: "https://www.youtube.com/embed/dQw4w9WgXcQ",
+                overview: "A brilliant cryptographer stumbles across encoded secrets that link global financial institutions to clandestine covert ops."
+            },
+            {
+                id: 6,
+                title: "Starlight Voyage",
+                genre: "Sci-Fi",
+                rating: 8.1,
+                year: 2022,
+                duration: "2h 30m",
+                quality: "1080p",
+                poster: "https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=600&q=80",
+                trailer: "https://www.youtube.com/embed/dQw4w9WgXcQ",
+                overview: "Explorers cross an unstable wormhole in search of a habitable sanctuary planet to save humanity from imminent extinction."
+            },
+            {
+                id: 7,
+                title: "The Last Detective",
+                genre: "Action",
+                rating: 8.0,
+                year: 2023,
+                duration: "2h 05m",
+                quality: "1080p",
+                poster: "https://images.unsplash.com/photo-1485846234645-a62644f84728?auto=format&fit=crop&w=600&q=80",
+                trailer: "https://www.youtube.com/embed/dQw4w9WgXcQ",
+                overview: "A seasoned detective navigates corruption and organized crime syndicates to solve a high-profile cold case."
+            },
+            {
+                id: 8,
+                title: "Echoes of Summer",
+                genre: "Drama",
+                rating: 7.7,
+                year: 2024,
+                duration: "1h 45m",
+                quality: "1080p",
+                poster: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=600&q=80",
+                trailer: "https://www.youtube.com/embed/dQw4w9WgXcQ",
+                overview: "A moving coming-of-age story following three childhood friends reconnecting along the coastal town of their youth."
+            }
+        ];
+
+        // Genres
+        const genres = ["All", "Action", "Sci-Fi", "Fantasy", "Horror", "Thriller", "Drama"];
+
+        // State Management
+        let selectedGenre = "All";
+        let watchlist = JSON.parse(localStorage.getItem("cinestream_watchlist") || "[]");
+
+        // Initialization
+        window.addEventListener('DOMContentLoaded', () => {
+            renderGenres();
+            applyFilters();
+            updateWatchlistBadge();
+            lucide.createIcons();
+        });
+
+        // Render Genre Filter Buttons
+        function renderGenres() {
+            const container = document.getElementById('genreFilters');
+            container.innerHTML = genres.map(g => `
+                <button onclick="selectGenre('${g}')" class="px-3.5 py-1.5 rounded-xl text-xs font-medium whitespace-nowrap transition ${
+                    selectedGenre === g 
+                        ? 'bg-rose-600 text-white shadow-md shadow-rose-600/30' 
+                        : 'bg-slate-900 border border-slate-800 text-slate-400 hover:text-slate-200 hover:border-slate-700'
+                }">${g}</button>
+            `).join('');
+        }
+
+        // Handle Genre Selection
+        function selectGenre(genre) {
+            selectedGenre = genre;
+            renderGenres();
+            applyFilters();
+        }
+
+        // Handle Search & Filtering
+        function handleSearch() {
+            applyFilters();
+        }
+
+        function resetFilters() {
+            document.getElementById('searchInput').value = '';
+            selectedGenre = "All";
+            renderGenres();
+            applyFilters();
+        }
+
+        function applyFilters() {
+            const query = document.getElementById('searchInput').value.toLowerCase().trim();
+            const sortBy = document.getElementById('sortSelect').value;
+
+            let filtered = moviesData.filter(movie => {
+                const matchesGenre = selectedGenre === "All" || movie.genre === selectedGenre;
+                const matchesSearch = movie.title.toLowerCase().includes(query) || movie.overview.toLowerCase().includes(query);
+                return matchesGenre && matchesSearch;
+            });
+
+            // Sorting
+            if (sortBy === 'rating') {
+                filtered.sort((a, b) => b.rating - a.rating);
+            } else if (sortBy === 'latest') {
+                filtered.sort((a, b) => b.year - a.year);
+            }
+
+            renderMovies(filtered);
+        }
+
+        // Render Movie Grid
+        function renderMovies(movies) {
+            const grid = document.getElementById('moviesGrid');
+            const emptyState = document.getElementById('emptyState');
+            const countText = document.getElementById('movieCount');
+
+            countText.innerText = `Showing ${movies.length} titles`;
+
+            if (movies.length === 0) {
+                grid.innerHTML = '';
+                emptyState.classList.remove('hidden');
+                return;
+            }
+
+            emptyState.classList.add('hidden');
+            grid.innerHTML = movies.map(movie => {
+                const isSaved = watchlist.includes(movie.id);
+                return `
+                    <div class="group relative bg-slate-900 rounded-xl overflow-hidden border border-slate-800 hover:border-slate-700 transition duration-300 flex flex-col shadow-lg">
+                        <!-- Quality Badge -->
+                        <span class="absolute top-2.5 left-2.5 z-20 px-2 py-0.5 rounded bg-slate-950/80 backdrop-blur-md text-rose-400 font-semibold text-[10px] border border-rose-500/30">
+                            ${movie.quality}
+                        </span>
+
+                        <!-- Bookmark Button -->
+                        <button onclick="toggleWatchlist(${movie.id})" class="absolute top-2.5 right-2.5 z-20 p-1.5 rounded-lg bg-slate-950/80 backdrop-blur-md text-slate-300 hover:text-rose-500 transition border border-slate-800">
+                            <i data-lucide="bookmark" class="w-4 h-4 ${isSaved ? 'fill-rose-500 text-rose-500' : ''}"></i>
+                        </button>
+
+                        <!-- Poster Image -->
+                        <div class="relative aspect-[2/3] overflow-hidden bg-slate-950 cursor-pointer" onclick="openPlayerModal(${movie.id})">
+                            <img src="${movie.poster}" alt="${movie.title}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
+                            <div class="absolute inset-0 bg-slate-950/50 opacity-0 group-hover:opacity-100 transition duration-300 flex items-center justify-center">
+                                <div class="w-12 h-12 rounded-full bg-rose-600 text-white flex items-center justify-center shadow-xl transform scale-90 group-hover:scale-100 transition">
+                                    <i data-lucide="play" class="w-5 h-5 fill-current ml-0.5"></i>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Details -->
+                        <div class="p-3.5 flex-1 flex flex-col justify-between space-y-3">
+                            <div>
+                                <div class="flex items-center justify-between text-[11px] text-slate-400 mb-1">
+                                    <span>${movie.genre}</span>
+                                    <span class="flex items-center gap-0.5 text-amber-400 font-medium">
+                                        <i data-lucide="star" class="w-3 h-3 fill-amber-400"></i> ${movie.rating}
+                                    </span>
+                                </div>
+                                <h3 class="font-semibold text-sm text-slate-100 line-clamp-1 group-hover:text-rose-400 transition">${movie.title}</h3>
+                            </div>
+
+                            <div class="flex gap-2">
+                                <button onclick="openPlayerModal(${movie.id})" class="flex-1 py-1.5 px-2 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs rounded-lg font-medium transition flex items-center justify-center gap-1">
+                                    <i data-lucide="play" class="w-3 h-3"></i> Stream
+                                </button>
+                                <button onclick="openDownloadModal(${movie.id})" class="p-1.5 bg-rose-600/10 hover:bg-rose-600 text-rose-400 hover:text-white border border-rose-500/20 rounded-lg transition" title="Download">
+                                    <i data-lucide="download" class="w-3.5 h-3.5"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            lucide.createIcons();
+        }
+
+        // Modals Logic
+        function openPlayerModal(movieId) {
+            const movie = moviesData.find(m => m.id === movieId);
+            if (!movie) return;
+
+            document.getElementById('playerModalTitle').innerText = `${movie.title} (${movie.year}) - Official Trailer`;
+            document.getElementById('videoIframe').src = movie.trailer;
+            document.getElementById('playerModal').classList.remove('hidden');
+        }
+
+        function closePlayerModal() {
+            document.getElementById('videoIframe').src = "";
+            document.getElementById('playerModal').classList.add('hidden');
+        }
+
+        function openDownloadModal(movieId) {
+            const movie = moviesData.find(m => m.id === movieId);
+            if (!movie) return;
+
+            document.getElementById('downloadModalTitle').innerText = movie.title;
+            document.getElementById('downloadModalMeta').innerText = `Released: ${movie.year} • Duration: ${movie.duration}`;
+
+            const options = [
+                { quality: '4K Ultra HD (2160p)', size: '12.4 GB', format: 'MKV x265' },
+                { quality: 'Full HD (1080p)', size: '2.8 GB', format: 'MP4 x264' },
+                { quality: 'Standard HD (720p)', size: '950 MB', format: 'MP4' }
+            ];
+
+            const container = document.getElementById('downloadLinksContainer');
+            container.innerHTML = options.map(opt => `
+                <div class="flex items-center justify-between p-3 bg-slate-800/60 rounded-xl border border-slate-700/60 hover:border-slate-600 transition">
+                    <div>
+                        <div class="text-xs font-semibold text-slate-200">${opt.quality}</div>
+                        <div class="text-[11px] text-slate-400">${opt.format} • ${opt.size}</div>
+                    </div>
+                    <button onclick="triggerFakeDownload('${movie.title}', '${opt.quality}')" class="px-3 py-1.5 bg-rose-600 hover:bg-rose-700 text-white text-xs rounded-lg font-medium transition flex items-center gap-1.5 shadow-md shadow-rose-600/20">
+                        <i data-lucide="download" class="w-3.5 h-3.5"></i> Download
+                    </button>
+                </div>
+            `).join('');
+
+            document.getElementById('downloadModal').classList.remove('hidden');
+            lucide.createIcons();
+        }
+
+        function closeDownloadModal() {
+            document.getElementById('downloadModal').classList.add('hidden');
+        }
+
+        function triggerFakeDownload(title, quality) {
+            alert(`Starting secure download for "${title}" [${quality}]...`);
+        }
+
+        // Watchlist Functions
+        function toggleWatchlist(movieId) {
+            if (watchlist.includes(movieId)) {
+                watchlist = watchlist.filter(id => id !== movieId);
+            } else {
+                watchlist.push(movieId);
+            }
+            localStorage.setItem("cinestream_watchlist", JSON.stringify(watchlist));
+            updateWatchlistBadge();
+            applyFilters();
+        }
+
+        function updateWatchlistBadge() {
+            const badge = document.getElementById('watchlistBadge');
+            badge.innerText = watchlist.length;
+            if (watchlist.length > 0) {
+                badge.classList.remove('hidden');
+            } else {
+                badge.classList.add('hidden');
+            }
+        }
+
+        function toggleWatchlistModal() {
+            const modal = document.getElementById('watchlistModal');
+            const container = document.getElementById('watchlistItems');
+
+            if (modal.classList.contains('hidden')) {
+                const savedMovies = moviesData.filter(m => watchlist.includes(m.id));
+                
+                if (savedMovies.length === 0) {
+                    container.innerHTML = `<div class="text-center py-8 text-xs text-slate-500">Your watchlist is empty.</div>`;
+                } else {
+                    container.innerHTML = savedMovies.map(movie => `
+                        <div class="flex items-center justify-between p-3 bg-slate-800/50 border border-slate-700/50 rounded-xl">
+                            <div class="flex items-center space-x-3">
+                                <img src="${movie.poster}" class="w-10 h-14 object-cover rounded-md">
+                                <div>
+                                    <h4 class="text-xs font-semibold text-slate-200">${movie.title}</h4>
+                                    <p class="text-[11px] text-slate-400">${movie.genre} • ${movie.year}</p>
+                                </div>
+                            </div>
+                            <button onclick="toggleWatchlist(${movie.id}); toggleWatchlistModal();" class="text-rose-400 hover:text-rose-300 p-1">
+                                <i data-lucide="trash-2" class="w-4 h-4"></i>
+                            </button>
+                        </div>
+                    `).join('');
+                }
+                modal.classList.remove('hidden');
+                lucide.createIcons();
+            } else {
+                modal.classList.add('hidden');
+            }
+        }
+    </script>
+</body>
+</html>
